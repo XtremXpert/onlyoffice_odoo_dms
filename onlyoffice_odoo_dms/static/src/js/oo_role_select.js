@@ -10,17 +10,18 @@
  * runtime via an ORM call and refreshed when context changes.
  */
 
-import { onWillStart, onWillUpdateProps } from "@odoo/owl"
+import { onWillStart, onWillUpdateProps, t, useProps } from "@odoo/owl"
 import { _t } from "@web/core/l10n/translation"
 import { registry } from "@web/core/registry"
-import { SelectionField, selectionField } from "@web/views/fields/selection/selection_field"
+import { SelectionField, selectionField, selectionFieldProps } from "@web/views/fields/selection/selection_field"
 
 class OoRoleSelect extends SelectionField {
-  static props = {
-    ...SelectionField.props,
-    method: { type: String },
-    context: { type: Object },
-  }
+  // Odoo 20 / OWL 3 : même patron que DynamicSelectionField (account)
+  props = useProps({
+    ...selectionFieldProps,
+    context: t.object(),
+    method: t.string(),
+  })
 
   setup() {
     super.setup()

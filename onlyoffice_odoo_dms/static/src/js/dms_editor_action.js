@@ -4,9 +4,10 @@
  * License LGPL-3.0 or later (https://www.gnuorg/licenses/agpl.html).
  */
 
-import { Component, useState, onMounted } from "@odoo/owl"
+import { Component, onMounted, proxy, useProps } from "@odoo/owl"
 import { registry } from "@web/core/registry"
 import { useService } from "@web/core/utils/hooks"
+import { standardActionServiceProps } from "@web/webclient/actions/action_plugin"
 
 /**
  * Client action that embeds the ONLYOFFICE DMS editor in an iframe
@@ -21,10 +22,8 @@ import { useService } from "@web/core/utils/hooks"
 export class OnlyofficeDmsEditorAction extends Component {
   static template = "onlyoffice_odoo_dms.EditorAction"
 
-  static props = {
-    "*": true,
-    action: Object,
-  }
+  // Odoo 20 / OWL 3 : les actions client déclarent leurs props
+  props = useProps(standardActionServiceProps)
 
   setup() {
     this.actionService = useService("action")
@@ -40,7 +39,7 @@ export class OnlyofficeDmsEditorAction extends Component {
 
     // Env.config.breadcrumbs triggers URL computation in the action service,
     // which is not ready during the initial render — capture it after mount.
-    this.bcState = useState({ items: [] })
+    this.bcState = proxy({ items: [] })
     onMounted(() => {
       const all = this.env.config.breadcrumbs || []
       const label = this._mode === "view" ? "Preview in ONLYOFFICE" : "Edit in ONLYOFFICE"

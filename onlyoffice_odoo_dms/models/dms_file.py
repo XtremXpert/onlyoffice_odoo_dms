@@ -23,7 +23,7 @@ class DmsFile(models.Model):
         string="ONLYOFFICE Version",
         default=0,
         copy=False,
-        help=("Incremented each time a file is saved back from ONLYOFFICE. " "Used as part of the document cache key."),
+        help=("Incremented each time a file is saved back from ONLYOFFICE. Used as part of the document cache key."),
     )
     oo_user_access_ids = fields.One2many(
         "onlyoffice.dms.file.access.user",

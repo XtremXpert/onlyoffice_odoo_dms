@@ -132,13 +132,12 @@ class OnlyofficeDmsFileAccessUser(models.Model):
         help="Effective DMS access level, used to limit available ONLYOFFICE roles.",
     )
 
-    _sql_constraints = [
-        (
-            "unique_user_file",
-            "UNIQUE(file_id, user_id)",
-            "A user can only have one ONLYOFFICE role per DMS file.",
-        )
-    ]
+    # Odoo 20 : _sql_constraints est ignoré, la contrainte doit être déclarée
+    # avec models.Constraint (sinon aucune unicité en base)
+    _unique_user_file = models.Constraint(
+        "UNIQUE(file_id, user_id)",
+        "A user can only have one ONLYOFFICE role per DMS file.",
+    )
 
     @api.depends("file_id", "user_id")
     def _compute_oo_dir_role(self):

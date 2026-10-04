@@ -15,23 +15,23 @@
           <div class="o_control_panel_breadcrumbs d-flex align-items-center gap-1 order-0 h-lg-100">
             <div class="o_breadcrumb d-flex flex-row flex-md-column align-self-stretch justify-content-between min-w-0">
               <ol class="breadcrumb flex-nowrap text-nowrap lh-sm">
-                <t t-foreach="parentBreadcrumbs" t-as="bc" t-key="bc.jsId">
+                <t t-foreach="this.parentBreadcrumbs" t-as="bc" t-key="bc.jsId">
                   <li class="breadcrumb-item d-inline-flex min-w-0 o_back_button">
                     <a
                       role="button"
                       class="fw-bold text-truncate"
-                      t-on-click="() => navigateTo(bc.jsId)"
-                      t-esc="bc.name"
+                      t-on-click="() => this.navigateTo(bc.jsId)"
+                      t-out="bc.name"
                     />
                   </li>
                 </t>
               </ol>
-              <div class="d-flex gap-1 text-truncate" t-esc="currentBreadcrumb" />
+              <div class="d-flex gap-1 text-truncate" t-out="this.currentBreadcrumb" />
             </div>
           </div>
         </div>
       </div>
-      <iframe class="o_onlyoffice_dms_editor" t-att-src="editorUrl" allowfullscreen="true" />
+      <iframe class="o_onlyoffice_dms_editor" t-att-src="this.editorUrl" allowfullscreen="true" />
     </div>
   </t>
 

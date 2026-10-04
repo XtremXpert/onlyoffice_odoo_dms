@@ -3,7 +3,7 @@
 
 import base64
 
-from odoo.tests import TransactionCase, tagged
+from odoo.tests import TransactionCase, new_test_user, tagged
 
 from odoo.addons.onlyoffice_odoo_dms.models.onlyoffice_dms_access import (
     _ROLES_ALL,
@@ -71,13 +71,15 @@ class TestOnlyofficeDmsFileAccessUser(TransactionCase):
             {
                 "name": "Test OO Directory",
                 "storage_id": cls.storage.id,
+                # dms récent : un répertoire sans parent doit être racine
+                "is_root_directory": True,
             }
         )
         cls.dms_file = cls.env["dms.file"].create(
             {
                 "name": "test_document.docx",
                 "directory_id": cls.directory.id,
-                "content": base64.b64encode(b"PK\x03\x04"),
+                "content": base64.b64encode(b"PK\x03\x04").decode(),
             }
         )
 
@@ -94,7 +96,8 @@ class TestOnlyofficeDmsFileAccessUser(TransactionCase):
         self.assertEqual(access.user_id, self.env.user)
 
     def test_create_user_access_record_edit_role(self):
-        user2 = self.env.ref("base.user_demo")
+        # pas de données de démo en CI : utilisateur de test
+        user2 = new_test_user(self.env, login="oo-dms-user2")
         access = self.env["onlyoffice.dms.file.access.user"].create(
             {
                 "file_id": self.dms_file.id,
@@ -109,7 +112,7 @@ class TestOnlyofficeDmsFileAccessUser(TransactionCase):
             {
                 "name": "unique_test.docx",
                 "directory_id": self.directory.id,
-                "content": base64.b64encode(b"PK\x03\x04"),
+                "content": base64.b64encode(b"PK\x03\x04").decode(),
             }
         )
         self.env["onlyoffice.dms.file.access.user"].create(
@@ -139,7 +142,7 @@ class TestOnlyofficeDmsFileAccessUser(TransactionCase):
             {
                 "name": "archive.xyz_not_supported",
                 "directory_id": self.directory.id,
-                "content": base64.b64encode(b"data"),
+                "content": base64.b64encode(b"data").decode(),
             }
         )
         self.assertFalse(unknown_file.oo_is_editable)

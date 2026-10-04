@@ -4,17 +4,17 @@
  * License LGPL-3.0 or later (https://www.gnuorg/licenses/agpl.html).
  */
 
-import { FileKanbanView } from "@dms/js/views/file_kanban_view.esm"
+import { FileListController } from "@dms/js/views/file_list_controller.esm"
+import { FileKanbanController, FileKanbanView } from "@dms/js/views/file_kanban_view.esm"
 import { FileListView } from "@dms/js/views/file_list_view.esm"
-import { Component, useState, useEffect } from "@odoo/owl"
+import { Component, proxy, t, useProps } from "@odoo/owl"
 import { Dialog } from "@web/core/dialog/dialog"
 import { _t } from "@web/core/l10n/translation"
 import { rpc } from "@web/core/network/rpc"
 import { registry } from "@web/core/registry"
 import { useService } from "@web/core/utils/hooks"
 import { patch } from "@web/core/utils/patch"
-import { KanbanController } from "@web/views/kanban/kanban_controller"
-import { ListController } from "@web/views/list/list_controller"
+import { useLayoutEffect } from "@web/owl2/utils"
 
 const FORMATS = [
   {
@@ -47,18 +47,16 @@ export class DmsCreateOnlyofficeDialog extends Component {
 
   static components = { Dialog }
 
-  static props = {
-    close: Function,
-    directoryId: Number,
-    onCreated: {
-      optional: true,
-      type: Function,
-    },
-  }
+  // Odoo 20 / OWL 3 : props déclarées par useProps
+  props = useProps({
+    close: t.function(),
+    directoryId: t.number(),
+    onCreated: t.function().optional(),
+  })
 
   setup() {
     this.notification = useService("notification")
-    this.state = useState({
+    this.state = proxy({
       format: "docx",
       loading: false,
       title: "New Document",
@@ -146,15 +144,17 @@ function createOnlyofficeCreateExtension() {
     },
 
     setup() {
-      super.setup()
+      super.setup(...arguments)
       this.dialogService = useService("dialog")
       if (!this.notification) {
         this.notification = useService("notification")
       }
       const orm = useService("orm")
-      this.ooState = useState({ canCreate: false })
+      this.ooState = proxy({ canCreate: false })
 
-      useEffect(
+      // OWL 3 : useEffect n'a plus de dépendances ; useLayoutEffect (couche
+      // owl2) recalcule quand le domaine (répertoire choisi) change.
+      useLayoutEffect(
         () => {
           const directoryId = this._ooGetDirectoryId()
           if (directoryId === false) {
@@ -171,8 +171,10 @@ function createOnlyofficeCreateExtension() {
   }
 }
 
-patch(ListController.prototype, createOnlyofficeCreateExtension())
-patch(KanbanController.prototype, createOnlyofficeCreateExtension())
+// Odoo 20 : contrôleurs dédiés de dms (un patch des contrôleurs globaux
+// toucherait toutes les vues liste / kanban)
+patch(FileListController.prototype, createOnlyofficeCreateExtension())
+patch(FileKanbanController.prototype, createOnlyofficeCreateExtension())
 
 // Point the DMS views at our extended button templates
 FileListView.buttonTemplate = "onlyoffice_odoo_dms.ListButtonsExtension"

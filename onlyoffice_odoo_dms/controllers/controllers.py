@@ -1,7 +1,6 @@
 # Copyright (C) 2026 Data Dance s.r.o., Ascensio System SIA
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0-standalone.html).
 
-import base64
 import json
 import logging
 import re
@@ -13,6 +12,8 @@ from werkzeug.exceptions import Forbidden
 from odoo import _, http
 from odoo.exceptions import AccessError, ValidationError
 from odoo.http import request
+from odoo.tools import BinaryBytes
+from odoo.tools.json import json_default
 
 from odoo.addons.onlyoffice_odoo.controllers.controllers import (
     Onlyoffice_Connector,
@@ -84,8 +85,8 @@ class OnlyofficeDms_Connector(Onlyoffice_Connector):
 
         force_view = mode == "view" or not has_write
         values = self._prepare_dms_editor_values(dms_file, oo_role, force_view=force_view)
-        values["editorConfig"] = markupsafe.Markup(json.dumps(values["editorConfig"]))
-        values["session_info"] = markupsafe.Markup(json.dumps(values["session_info"]))
+        values["editorConfig"] = markupsafe.Markup(json.dumps(values["editorConfig"], default=json_default))
+        values["session_info"] = markupsafe.Markup(json.dumps(values["session_info"], default=json_default))
         return request.render("onlyoffice_odoo.onlyoffice_editor", values)
 
     # ----------------------------------------------------------
@@ -126,7 +127,7 @@ class OnlyofficeDms_Connector(Onlyoffice_Connector):
         if not content:
             return request.not_found()
 
-        binary = base64.b64decode(content)
+        binary = bytes(content)  # Odoo 20 : BinaryValue, plus de base64
         return request.make_response(
             binary,
             headers=[
@@ -184,7 +185,7 @@ class OnlyofficeDms_Connector(Onlyoffice_Connector):
                 new_bytes = onlyoffice_urlopen(file_url).read()
                 dms_file.with_user(user).write(
                     {
-                        "content": base64.encodebytes(new_bytes),
+                        "content": BinaryBytes(new_bytes),
                         "oo_version": dms_file.oo_version + 1,
                     }
                 )
@@ -212,7 +213,7 @@ class OnlyofficeDms_Connector(Onlyoffice_Connector):
         "/onlyoffice/dms/file/create",
         auth="user",
         methods=["POST"],
-        type="json",
+        type="jsonrpc",
     )
     def post_dms_file_create(self, directory_id, supported_format, title):
         """
@@ -233,7 +234,7 @@ class OnlyofficeDms_Connector(Onlyoffice_Connector):
                     {
                         "name": f"{title}.{supported_format}",
                         "directory_id": int(directory_id),
-                        "content": base64.encodebytes(file_data),
+                        "content": BinaryBytes(file_data),
                     }
                 )
 
@@ -287,8 +288,8 @@ class OnlyofficeDms_Connector(Onlyoffice_Connector):
             return request.not_found()
 
         values = self._prepare_dms_shared_editor_values(dms_file, access_token, link_access)
-        values["editorConfig"] = markupsafe.Markup(json.dumps(values["editorConfig"]))
-        values["session_info"] = markupsafe.Markup(json.dumps(values["session_info"]))
+        values["editorConfig"] = markupsafe.Markup(json.dumps(values["editorConfig"], default=json_default))
+        values["session_info"] = markupsafe.Markup(json.dumps(values["session_info"], default=json_default))
         return request.render("onlyoffice_odoo.onlyoffice_editor", values)
 
     # ----------------------------------------------------------
@@ -334,7 +335,7 @@ class OnlyofficeDms_Connector(Onlyoffice_Connector):
                 new_bytes = onlyoffice_urlopen(file_url).read()
                 dms_file.with_user(user).sudo().write(
                     {
-                        "content": base64.encodebytes(new_bytes),
+                        "content": BinaryBytes(new_bytes),
                         "oo_version": dms_file.oo_version + 1,
                     }
                 )
