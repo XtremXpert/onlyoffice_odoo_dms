@@ -5,7 +5,8 @@
  */
 
 import { FileListController } from "@dms/js/views/file_list_controller.esm"
-import { FileKanbanController, FileKanbanView } from "@dms/js/views/file_kanban_view.esm"
+import { FileKanbanController } from "@dms/js/views/file_kanban_controller.esm"
+import { FileKanbanView } from "@dms/js/views/file_kanban_view.esm"
 import { FileListView } from "@dms/js/views/file_list_view.esm"
 import { Component, proxy, t, useProps } from "@odoo/owl"
 import { Dialog } from "@web/core/dialog/dialog"
